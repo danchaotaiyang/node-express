@@ -12,6 +12,7 @@ let app = express();
 app.set('view engine', 'html');
 app.set('views', path.resolve('view'));
 app.engine('html', require('ejs').__express);
+app.use(express.static(path.resolve('../node_modules')));
 
 app.use(bodyParser.urlencoded({extended: true}));
 
