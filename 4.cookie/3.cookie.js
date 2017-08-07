@@ -9,7 +9,10 @@ app.use(cookieParser());
 
 app.get('/write', function (req, res) {
 	res.cookie('name', '蛋炒太阳', {
-		path: '/read'
+		// path: '/read',
+		// expires: new Date(Date.now() + 10 * 1000),
+		// maxAge: 100 * 1000,
+		httpOnly: true
 	});
 	res.send('ok')
 });
