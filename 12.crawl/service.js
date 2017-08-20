@@ -13,7 +13,6 @@ app.get('/', (req, res) => {
 app.listen(80);
 
 let CronJob = require('cron').CronJob;
-
 let job = new CronJob('0 0 * * * *', start);
 
 job.start();
