@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Title</title>
+	<link rel="stylesheet" href="/bootstrap/dist/css/bootstrap.min.css">
+	<style>
+		body {
+			font-size: 12px;
+		}
+
+		.main {
+			padding: 3em 0;
+		}
+
+		.panel-heading a {
+			font-size: 16px;
+			color: #000;
+		}
+
+		.panel-body {
+			padding-right: 0;
+			padding-left: 0;
+			height: 400px;
+			overflow: auto;
+		}
+
+		.prompt {
+			text-align: center;
+		}
+
+		.prompt p {
+			display: inline-block;
+			padding: .5em .75em;
+			background-color: #E1E2E3;
+			color: #777777;
+			-webkit-border-radius: 10px;
+			-moz-border-radius: 10px;
+			border-radius: 10px;
+		}
+
+		.time {
+			text-align: center;
+			color: #808080;
+		}
+
+		.media-body h5 {
+			display: inline-block;
+			color: #808080;
+			cursor: pointer;
+		}
+
+		.media-content p {
+			display: inline-block;
+			padding: 1em;
+			background-color: #EEEEEE;
+			-webkit-border-radius: 10px;
+			-moz-border-radius: 10px;
+			border-radius: 10px;
+		}
+		.revoke {
+			display: inline-block;
+			width: 1em;
+			height: 1em;
+			background: #d50000;
+			text-align: center;
+			font-size: 1.25em;
+			line-height: 1em;
+			color: #fff;
+			-webkit-border-radius: 50%;
+			-moz-border-radius: 50%;
+			border-radius: 50%;
+		}
+	</style>
+</head>
+<body>
+<div class="wrap">
+	<div class="main">
+		<div class="container">
+			<div class="col-sm-6 col-sm-offset-2">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<a href="javascript:void 0;">珠峰node交流3群</a> <span class="pull-right"><button type="button" class="btn btn-default btn-xs" id="red" onclick="join(event)">红房间</button> <button type="button" class="btn btn-default btn-xs" id="green" onclick="join(event)">绿房间</button></span>
+					</div>
+					<div class="panel-body" id="msgLog"></div>
+					<div class="panel-footer">
+						<form onsubmit="msgSend(event)">
+							<div class="input-group">
+								<div class="input-group-btn">
+									<button type="button" class="btn btn-default"><span class="glyphicon glyphicon-picture"></span></button>
+								</div>
+								<input type="text" class="form-control" id="msgContent" autocomplete="off" required>
+								<div class="input-group-btn dropup">
+									<button type="submit" class="btn btn-danger">发送</button>
+									<button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown">
+										<span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu">
+										<li><a href="javascript:void 0;">按Enter发送</a></li>
+										<li><a href="javascript:void 0;">按Ctrl + Enter发送</a></li>
+									</ul>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script src="https://cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+	let msgLog = document.querySelector('#msgLog');
+	let msgContent = document.querySelector('#msgContent');
+
+	let time;
+	let difference = 0;
+	let user = {
+		name: '张仁阳',
+		avatar: 'https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=997159070,2785512468&fm=26&gp=0.jpg'
+	};
+
+	let msgSend = (event) => {
+		event.preventDefault();
+		user.content = msgContent.value;
+		msgContent.value = '';
+		socket.send(user);
+	};
+
+	let msgChat = (e) => {
+		let className = e.target.className;
+		if (className == 'media-heading') {
+			msgContent.value = `@${e.target.innerHTML} `;
+		} else if(className == 'revoke') {
+			let id = e.target.id;
+			socket.emit('revoke', id.slice(7));
+		}
+	};
+
+	let formatMsg = (msg) => {
+		if (msg.name === user.name) {
+			return `<div class="col-sm-11 col-sm-offset-1">
+				<div class="media-body text-right">
+					<h5 class="media-heading" onclick="msgChat(event)">${msg.name}</h5>
+					<div class="media-content">
+						<a href="javascript:void 0;" class="revoke" title="撤销" id="revoke_${msg._id}" onclick="msgChat(event)">&times;</a> <p>${msg.content}</p>
+					</div>
+				</div>
+				<div class="media-right">
+					<img class="media-object img-circle" src="${msg.avatar}" alt="" width="32" height="32">
+				</div>
+			</div>`;
+		} else {
+			return `<div class="col-sm-11">
+				<div class="media-left">
+					<img class="media-object img-circle" src="${msg.avatar}" alt="" width="32" height="32">
+				</div>
+				<div class="media-body">
+					<h5 class="media-heading" onclick="msgChat(event)">${msg.name}</h5>
+					<div class="media-content">
+						<p>${msg.content}</p>
+					</div>
+				</div>
+			</div>`;
+		}
+	};
+
+	let join = (e) => {
+		let id = e.target.id;
+		socket.emit('join', id);
+	};
+
+	let socket = io();
+	socket.on('connect', () => {
+		socket.send(user);
+		socket.emit('getAllMessage');
+	});
+
+	socket.on('allMessages', (messages) => {
+		msgLog.innerHTML += messages.map((item, index) => {
+			return `<div class="media">${formatMsg(item)}</div>`;
+		});
+		msgLog.scrollTop = msgLog.scrollHeight;
+	});
+
+	socket.on('message', (msg) => {
+		if (time) {
+			let now = new Date().getTime();
+			difference = now - new Date(time).getTime();
+			if (difference > 5000) {
+				time = now;
+			}
+		} else {
+			time = msg.createAt;
+		}
+
+		let item = document.createElement('div');
+		item.className = 'media';
+		item.innerHTML = '';
+		if (!msg.name) {
+			item.innerHTML += `<div class="prompt"><p>${msg.content}</p></div>`;
+		} else {
+			if (difference > 5000) {
+				item.innerHTML += `<div class="time">${new Date(time).toLocaleString()}</div>`;
+			}
+			item.innerHTML += formatMsg(msg);
+		}
+
+		msgLog.appendChild(item);
+		msgLog.scrollTop = msgLog.scrollHeight
+	});
+
+	socket.on('joined', (room) => {
+		Array.from(document.querySelectorAll('.btn-xs')).forEach(item => {
+			item.className = 'btn btn-default btn-xs';
+		});
+		document.querySelector('#' + room).className = 'btn btn-success btn-xs';
+	});
+
+	socket.on('revoked', (id) => {
+		let btn = document.querySelector('#revoke_' + id);
+		let di = btn.parentNode.parentNode.parentNode;
+		let revoked = document.createElement('div');
+		revoked.className = 'prompt';
+		revoked.innerHTML = `<div class="prompt"><p>你撤回了一条消息</p></div>`;
+		di.parentNode.replaceChild(revoked, di)
+	});
+
+</script>
+</body>
+</html>

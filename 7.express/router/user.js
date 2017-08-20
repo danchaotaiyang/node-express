@@ -36,6 +36,7 @@ router.get('/sign-up', function (req, res) {
 
 router.post('/sign-up', function (req, res) {
 	let user = req.body;
+	console.log(user);
 	if (!user.username || !user.password) {
 		req.session.error = '请输入用户名和密码';
 		res.redirect('back');

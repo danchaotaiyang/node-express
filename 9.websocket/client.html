@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Title</title>
+</head>
+<body>
+<script>
+	let sk = new WebSocket('ws://localhost:8080');
+
+	sk.onopen = () => {
+		console.log('连接成功');
+		sk.send('你好');
+	};
+
+	sk.onmessage = (event) => {
+		console.log(event.data);
+	};
+</script>
+</body>
+</html>
