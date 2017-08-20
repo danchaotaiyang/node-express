@@ -4,23 +4,23 @@ let async = require('async');
 
 console.time('cost');
 
-async.parallel([
+async.waterfall([
 	(cb) => {
 		setTimeout(() => {
 			console.log(1);
-			cb('err', '1');
+			cb(null, '1');
 		}, 2000);
 	},
-	(cb) => {
+	(data, cb) => {
 		setTimeout(() => {
-			console.log(2);
-			cb(null, '2');
+			console.log(2 + data);
+			cb(null, '2' + data);
 		}, 3000);
 	},
-	(cb) => {
+	(data, cb) => {
 		setTimeout(() => {
-			console.log(3);
-			cb(null, '3');
+			console.log(3 + data);
+			cb(null, '3' + data);
 		}, 1000);
 	}
 ], (err, result) => {
