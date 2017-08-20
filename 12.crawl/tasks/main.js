@@ -30,3 +30,5 @@ let start = () => {
 };
 
 start();
+
+module.exports = start;
