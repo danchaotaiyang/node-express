@@ -1,5 +1,5 @@
 'use strict';
-let  {start} = require('./tasks/main');
+let {start} = require('./tasks/main');
 let {Movie} = require('./dbcrawl');
 let express = require('express');
 let app = express();
